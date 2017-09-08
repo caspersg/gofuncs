@@ -15,7 +15,7 @@ func TestIntFoldableAppend(t *testing.T) {
 
 func TestIntFoldableConversions(t *testing.T) {
 	aList := IntFoldable{List: []int{1, 2, 3, 4}}
-	resultList := aList.AsItem().AsFoldable().(IntFoldable)
+	resultList := aList.AsItem().(FoldableItem).AsFoldable().(IntFoldable)
 	if !SliceEqual(resultList.List, aList.List) {
 		t.Errorf("result == %d expected %d", resultList, aList)
 	}

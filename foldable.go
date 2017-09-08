@@ -15,10 +15,15 @@ package funcs
 // Item could be a single value, like an int, or another Foldable
 // it takes the place of the generic type
 type Item interface {
-	// the generic functions below can return foldables, so we need a conversion method
+}
+
+// FoldableItem is for when an Item also happens to be Foldable
+// the generic functions below can return foldables, so we need a conversion method
+type FoldableItem interface {
 	AsFoldable() Foldable
 }
 
+// Foldable this needs to be implemented for each specific type
 type Foldable interface {
 	// the main way to process the Items within a Foldable
 	Foldl(init Item, f func(result, next Item) Item) Item
@@ -36,62 +41,67 @@ type Foldable interface {
 // Map applies a function to each item inside the foldable
 func Map(foldable Foldable, mapFunc func(Item) Item) Foldable {
 	result := foldable.Foldl(foldable.Init().AsItem(), func(result, next Item) Item {
-		return result.AsFoldable().
+		return result.(FoldableItem).AsFoldable().
 			Append(mapFunc(next)).
 			AsItem()
 	})
-	return result.AsFoldable()
+	return result.(FoldableItem).AsFoldable()
 }
 
 // Filter returns all the items which pass the filter func
 func Filter(foldable Foldable, filterFunc func(Item) bool) Foldable {
 	result := foldable.Foldl(foldable.Init().AsItem(), func(result, next Item) Item {
 		if filterFunc(next) {
-			return result.AsFoldable().
+			return result.(FoldableItem).AsFoldable().
 				Append(next).
 				AsItem()
 		}
 		return result
 	})
-	return result.AsFoldable()
+	return result.(FoldableItem).AsFoldable()
 }
 
-// IntItem is being used here, but every Foldable will use it for length
+// some generic functions operate on int values, so we need to define an internal intItem type.
+type intItem struct {
+	Value int
+}
 
 // Length returns the number of items contained in a foldable
 func Length(foldable Foldable) int {
-	count := IntItem{Value: 0}
+	count := intItem{Value: 0}
 	result := foldable.Foldl(count, func(result, next Item) Item {
-		return IntItem{Value: result.(IntItem).Value + 1}
+		return intItem{Value: result.(intItem).Value + 1}
 	})
-	return result.(IntItem).Value
+	return result.(intItem).Value
 }
 
-// some generic functions operate on boolean values, so we need to define a BoolItem type.
-// because Item can be a foldable, we also need to define a BoolFoldable as part of this
+// some generic functions operate on boolean values, so we need to define an internal boolItem type.
+type boolItem struct {
+	Value bool
+}
 
 // All returns true if all items pass the filterFunc
 func All(foldable Foldable, filterFunc func(Item) bool) bool {
-	result := foldable.Foldl(BoolItem{Value: true}, func(result, next Item) Item {
-		return BoolItem{Value: result.(BoolItem).Value && filterFunc(next)}
+	result := foldable.Foldl(boolItem{Value: true}, func(result, next Item) Item {
+		return boolItem{Value: result.(boolItem).Value && filterFunc(next)}
 	})
-	return result.(BoolItem).Value
+	return result.(boolItem).Value
 }
 
 // Any returns true if any of the items pass the filterFunc
 func Any(foldable Foldable, filterFunc func(Item) bool) bool {
-	result := foldable.Foldl(BoolItem{Value: false}, func(result, next Item) Item {
-		return BoolItem{Value: (result.(BoolItem).Value || filterFunc(next))}
+	result := foldable.Foldl(boolItem{Value: false}, func(result, next Item) Item {
+		return boolItem{Value: (result.(boolItem).Value || filterFunc(next))}
 	})
-	return result.(BoolItem).Value
+	return result.(boolItem).Value
 }
 
 // Concat concatenates the parameters
 func Concat(a, b Foldable) Foldable {
 	result := b.Foldl(a.AsItem(), func(result, next Item) Item {
-		return result.AsFoldable().Append(next).AsItem()
+		return result.(FoldableItem).AsFoldable().Append(next).AsItem()
 	})
-	return result.AsFoldable()
+	return result.(FoldableItem).AsFoldable()
 }
 
 // an internal type to store temporary result values
