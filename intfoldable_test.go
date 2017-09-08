@@ -21,9 +21,9 @@ func TestIntFoldableConversions(t *testing.T) {
 	}
 
 	anItem := IntItem{Value: 1}
-	resultItem := anItem.AsFoldable().AsItem().(IntListItem)
+	resultItem := anItem.AsFoldable().AsItem().(IntFoldable)
 	expected := []int{1}
-	if !SliceEqual(resultItem.Value, expected) {
+	if !SliceEqual(resultItem.List, expected) {
 		t.Errorf("result == %d expected %d", resultItem, expected)
 	}
 }
