@@ -1,6 +1,5 @@
 package funcs
 
-// bool is required for functions which return a bool
 type BoolItem struct {
 	Value bool
 }
@@ -27,10 +26,6 @@ func (boolFoldable BoolFoldable) Init() Foldable {
 
 func (boolFoldable BoolFoldable) Append(item Item) Foldable {
 	return BoolFoldable{List: append(boolFoldable.List, item.(BoolItem).Value)}
-}
-
-func (boolFoldable BoolFoldable) AsItem() Item {
-	return boolFoldable
 }
 
 func (boolFoldable BoolFoldable) AsFoldable() Foldable {

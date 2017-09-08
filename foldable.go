@@ -31,8 +31,6 @@ type Foldable interface {
 	Init() Foldable
 	// there needs to be a way to combine an Item and a Foldable
 	Append(item Item) Foldable
-	// the generic functions below can return foldables, so we need a conversion method
-	AsItem() Item
 }
 
 // there's a few things that can be defined with just a (left) fold
@@ -40,21 +38,19 @@ type Foldable interface {
 
 // Map applies a function to each item inside the foldable
 func Map(foldable Foldable, mapFunc func(Item) Item) Foldable {
-	result := foldable.Foldl(foldable.Init().AsItem(), func(result, next Item) Item {
+	result := foldable.Foldl(foldable.Init(), func(result, next Item) Item {
 		return result.(FoldableItem).AsFoldable().
-			Append(mapFunc(next)).
-			AsItem()
+			Append(mapFunc(next))
 	})
 	return result.(FoldableItem).AsFoldable()
 }
 
 // Filter returns all the items which pass the filter func
 func Filter(foldable Foldable, filterFunc func(Item) bool) Foldable {
-	result := foldable.Foldl(foldable.Init().AsItem(), func(result, next Item) Item {
+	result := foldable.Foldl(foldable.Init(), func(result, next Item) Item {
 		if filterFunc(next) {
 			return result.(FoldableItem).AsFoldable().
-				Append(next).
-				AsItem()
+				Append(next)
 		}
 		return result
 	})
@@ -98,8 +94,8 @@ func Any(foldable Foldable, filterFunc func(Item) bool) bool {
 
 // Concat concatenates the parameters
 func Concat(a, b Foldable) Foldable {
-	result := b.Foldl(a.AsItem(), func(result, next Item) Item {
-		return result.(FoldableItem).AsFoldable().Append(next).AsItem()
+	result := b.Foldl(a, func(result, next Item) Item {
+		return result.(FoldableItem).AsFoldable().Append(next)
 	})
 	return result.(FoldableItem).AsFoldable()
 }

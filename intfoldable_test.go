@@ -15,13 +15,13 @@ func TestIntFoldableAppend(t *testing.T) {
 
 func TestIntFoldableConversions(t *testing.T) {
 	aList := IntFoldable{List: []int{1, 2, 3, 4}}
-	resultList := aList.AsItem().(FoldableItem).AsFoldable().(IntFoldable)
+	resultList := aList.AsFoldable().(IntFoldable)
 	if !SliceEqual(resultList.List, aList.List) {
 		t.Errorf("result == %d expected %d", resultList, aList)
 	}
 
 	anItem := IntItem{Value: 1}
-	resultItem := anItem.AsFoldable().AsItem().(IntFoldable)
+	resultItem := anItem.AsFoldable().(IntFoldable)
 	expected := []int{1}
 	if !SliceEqual(resultItem.List, expected) {
 		t.Errorf("result == %d expected %d", resultItem, expected)

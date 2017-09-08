@@ -30,10 +30,6 @@ func (intFoldable IntFoldable) Append(item Item) Foldable {
 	return IntFoldable{List: append(intFoldable.List, item.(IntItem).Value)}
 }
 
-func (intFoldable IntFoldable) AsItem() Item {
-	return intFoldable
-}
-
 func (intFoldable IntFoldable) AsFoldable() Foldable {
 	return intFoldable
 }
