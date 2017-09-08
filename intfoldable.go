@@ -14,26 +14,26 @@ type IntFoldable struct {
 	List []int
 }
 
-func (intList IntFoldable) Foldl(init Item, foldFunc func(result, next Item) Item) Item {
+func (intFoldable IntFoldable) Foldl(init Item, foldFunc func(result, next Item) Item) Item {
 	result := init
-	for _, x := range intList.List {
+	for _, x := range intFoldable.List {
 		result = foldFunc(result, IntItem{Value: x})
 	}
 	return result
 }
 
-func (intList IntFoldable) Init() Foldable {
+func (intFoldable IntFoldable) Init() Foldable {
 	return IntFoldable{}
 }
 
-func (intList IntFoldable) Append(item Item) Foldable {
-	return IntFoldable{List: append(intList.List, item.(IntItem).Value)}
+func (intFoldable IntFoldable) Append(item Item) Foldable {
+	return IntFoldable{List: append(intFoldable.List, item.(IntItem).Value)}
 }
 
-func (intList IntFoldable) AsItem() Item {
-	return intList
+func (intFoldable IntFoldable) AsItem() Item {
+	return intFoldable
 }
 
-func (intList IntFoldable) AsFoldable() Foldable {
-	return intList
+func (intFoldable IntFoldable) AsFoldable() Foldable {
+	return intFoldable
 }

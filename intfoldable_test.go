@@ -47,3 +47,38 @@ func TestIntFoldableFilter(t *testing.T) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
+
+func TestIntFoldableLength(t *testing.T) {
+	in := []int{0, -1, 1, 2, -30}
+	length := Length(IntFoldable{List: in})
+	if length != 5 {
+		t.Errorf("result == %d expected %d", length, 5)
+	}
+}
+func TestIntFoldableAll(t *testing.T) {
+	isNegative := func(x Item) bool { return x.(IntItem).Value < 0 }
+	in := []int{0, -1, 1, 2, -30}
+	allNegative := All(IntFoldable{List: in}, isNegative)
+	if allNegative {
+		t.Errorf("result == %d expected %d", allNegative, false)
+	}
+}
+
+func TestIntFoldableAny(t *testing.T) {
+	isNegative := func(x Item) bool { return x.(IntItem).Value < 0 }
+	in := []int{0, -1, 1, 2, -30}
+	anyNegative := Any(IntFoldable{List: in}, isNegative)
+	if !anyNegative {
+		t.Errorf("result == %d expected %d", anyNegative, true)
+	}
+}
+
+func TestIntFoldableConcat(t *testing.T) {
+	a := []int{1, 2, 3}
+	b := []int{4, 5, 6}
+	expected := []int{1, 2, 3, 4, 5, 6}
+	result := Concat(IntFoldable{List: a}, IntFoldable{List: b})
+	if !SliceEqual(result.(IntFoldable).List, expected) {
+		t.Errorf("result == %d expected %d", result, expected)
+	}
+}
