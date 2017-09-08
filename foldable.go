@@ -14,7 +14,11 @@ import (
 
 // interfaces can only be defined on structs
 // so every type will need to be wrapped in a struct
-// the implementation will need to be responsable for how the actual value is wrapped/unwrapped
+// the implementation will need to be responsible for how the actual value is wrapped/unwrapped
+// the call site also needs to wrap and unwrap as well as cast
+// this is obviously sacrificing a fair bit of type safety
+// but the casts are restricted to functions you pass in and the overall result
+// and the user should be aware of what those types are
 
 // Item could be a single value, like an int, or another Foldable
 // it takes the place of the generic type
