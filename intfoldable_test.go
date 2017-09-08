@@ -1,6 +1,9 @@
 package funcs
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestIntFoldableAppend(t *testing.T) {
 	anItem := IntItem{Value: 5}
@@ -8,7 +11,7 @@ func TestIntFoldableAppend(t *testing.T) {
 	aList := IntFoldable{List: []int{1, 2, 3, 4}}
 	appendResult := aList.Append(anItem).(IntFoldable).List
 	expected := []int{1, 2, 3, 4, 5}
-	if !SliceEqual(appendResult, expected) {
+	if !reflect.DeepEqual(appendResult, expected) {
 		t.Errorf("result == %d expected %d", appendResult, expected)
 	}
 }
@@ -16,14 +19,14 @@ func TestIntFoldableAppend(t *testing.T) {
 func TestIntFoldableConversions(t *testing.T) {
 	aList := IntFoldable{List: []int{1, 2, 3, 4}}
 	resultList := aList.AsFoldable().(IntFoldable)
-	if !SliceEqual(resultList.List, aList.List) {
+	if !reflect.DeepEqual(resultList.List, aList.List) {
 		t.Errorf("result == %d expected %d", resultList, aList)
 	}
 
 	anItem := IntItem{Value: 1}
 	resultItem := anItem.AsFoldable().(IntFoldable)
 	expected := []int{1}
-	if !SliceEqual(resultItem.List, expected) {
+	if !reflect.DeepEqual(resultItem.List, expected) {
 		t.Errorf("result == %d expected %d", resultItem, expected)
 	}
 }
@@ -33,7 +36,7 @@ func TestIntFoldableMap(t *testing.T) {
 	in := []int{0, 1, 2}
 	expected := []int{0, 2, 4}
 	got := Map(IntFoldable{List: in}, mapFunc)
-	if !SliceEqual(got.(IntFoldable).List, expected) {
+	if !reflect.DeepEqual(got.(IntFoldable).List, expected) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
@@ -43,7 +46,7 @@ func TestIntFoldableFilter(t *testing.T) {
 	in := []int{0, -1, 1, 2, -30}
 	expected := []int{-1, -30}
 	got := Filter(IntFoldable{List: in}, isNegative)
-	if !SliceEqual(got.(IntFoldable).List, expected) {
+	if !reflect.DeepEqual(got.(IntFoldable).List, expected) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
@@ -78,7 +81,7 @@ func TestIntFoldableConcat(t *testing.T) {
 	b := []int{4, 5, 6}
 	expected := []int{1, 2, 3, 4, 5, 6}
 	result := Concat(IntFoldable{List: a}, IntFoldable{List: b})
-	if !SliceEqual(result.(IntFoldable).List, expected) {
+	if !reflect.DeepEqual(result.(IntFoldable).List, expected) {
 		t.Errorf("result == %d expected %d", result, expected)
 	}
 }
@@ -87,7 +90,7 @@ func TestIntFoldableTake(t *testing.T) {
 	x := []int{1, 2, 3, 4, 5, 6}
 	expected := []int{1, 2, 3}
 	result := Take(IntFoldable{List: x}, 3)
-	if !SliceEqual(result.(IntFoldable).List, expected) {
+	if !reflect.DeepEqual(result.(IntFoldable).List, expected) {
 		t.Errorf("result == %d expected %d", result, expected)
 	}
 }
@@ -96,7 +99,7 @@ func TestIntFoldableDrop(t *testing.T) {
 	x := []int{1, 2, 3, 4, 5, 6}
 	expected := []int{4, 5, 6}
 	result := Drop(IntFoldable{List: x}, 3)
-	if !SliceEqual(result.(IntFoldable).List, expected) {
+	if !reflect.DeepEqual(result.(IntFoldable).List, expected) {
 		t.Errorf("result == %d expected %d", result, expected)
 	}
 }
