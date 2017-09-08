@@ -1,5 +1,9 @@
 package funcs
 
+import (
+	"sync"
+)
+
 //
 // go does not support generics
 // code generation is an option, (like https://github.com/cheekybits/genny) but it's an added complication
@@ -39,6 +43,7 @@ type Foldable interface {
 // Map applies a function to each item inside the foldable
 func Map(foldable Foldable, mapFunc func(Item) Item) Foldable {
 	result := foldable.Foldl(foldable.Init(), func(result, next Item) Item {
+		// TODO just cast to Foldable
 		return result.(FoldableItem).AsFoldable().
 			Append(mapFunc(next))
 	})
@@ -138,4 +143,35 @@ func Drop(foldable Foldable, number int) Foldable {
 		return intAndFoldable{Int: count + 1, Foldable: previous}
 	})
 	return result.(intAndFoldable).Foldable
+}
+
+type resultItem struct {
+	Item
+}
+
+func NewPromise(waitGroup *sync.WaitGroup, mapFunc func() Item) *resultItem {
+	p := &resultItem{}
+	waitGroup.Add(1)
+	go func() {
+		p.Item = mapFunc()
+		waitGroup.Done()
+	}()
+	return p
+}
+
+// ParMap applies a function in parallel to each item inside the foldable
+func ParMap(foldable Foldable, mapFunc func(Item) Item) Foldable {
+	waitGroup := &sync.WaitGroup{}
+	init := []*resultItem{}
+	pendingResults := foldable.Foldl(init, func(result, next Item) Item {
+		promise := NewPromise(waitGroup, func() Item { return mapFunc(next) })
+		return append(result.([]*resultItem), promise)
+	})
+	waitGroup.Wait()
+
+	result := foldable.Init()
+	for _, p := range pendingResults.([]*resultItem) {
+		result = result.Append(p.Item)
+	}
+	return result.(FoldableItem).AsFoldable()
 }

@@ -1,8 +1,10 @@
 package funcs
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestStringIntMapFoldableAppend(t *testing.T) {
@@ -103,5 +105,19 @@ func TestStringIntMapFoldableDrop(t *testing.T) {
 	result := Drop(a, 3)
 	if !reflect.DeepEqual(result.(StringIntMapFoldable).Map, expected) {
 		t.Errorf("result == %d expected %d", result, expected)
+	}
+}
+
+func TestStringIntMapFoldableParMap(t *testing.T) {
+	mapFunc := func(x Item) Item {
+		time.Sleep(2 * time.Second)
+		fmt.Println("processing Item", x)
+		return StringIntEntryItem{Key: x.(StringIntEntryItem).Key, Value: x.(StringIntEntryItem).Value * 2}
+	}
+	in := StringIntMapFoldable{Map: map[string]int{"a": 1, "b": 2, "c": 3}}
+	expected := map[string]int{"a": 2, "b": 4, "c": 6}
+	got := ParMap(in, mapFunc)
+	if !reflect.DeepEqual(got.(StringIntMapFoldable).Map, expected) {
+		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
