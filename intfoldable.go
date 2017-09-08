@@ -6,10 +6,6 @@ type IntItem struct {
 	Value int
 }
 
-func (intItem IntItem) AsFoldable() Foldable {
-	return IntFoldable{List: []int{intItem.Value}}
-}
-
 type IntFoldable struct {
 	List []int
 }
@@ -28,8 +24,4 @@ func (intFoldable IntFoldable) Init() Foldable {
 
 func (intFoldable IntFoldable) Append(item Item) Foldable {
 	return IntFoldable{List: append(intFoldable.List, item.(IntItem).Value)}
-}
-
-func (intFoldable IntFoldable) AsFoldable() Foldable {
-	return intFoldable
 }

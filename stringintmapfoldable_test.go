@@ -17,22 +17,6 @@ func TestStringIntMapFoldableAppend(t *testing.T) {
 	}
 }
 
-func TestStringIntMapFoldableConversions(t *testing.T) {
-	expected := map[string]int{"b": 2}
-	aMap := StringIntMapFoldable{Map: expected}
-	resultF := aMap.AsFoldable().(StringIntMapFoldable)
-	if !reflect.DeepEqual(resultF.Map, expected) {
-		t.Errorf("result == %v expected %v", resultF, aMap)
-	}
-
-	anItem := StringIntEntryItem{Key: "a", Value: 1}
-	resultItem := anItem.AsFoldable().(StringIntMapFoldable)
-	expected = map[string]int{"a": 1}
-	if !reflect.DeepEqual(resultItem.Map, expected) {
-		t.Errorf("result == %v expected %v", resultItem, expected)
-	}
-}
-
 func TestStringIntMapFoldableMap(t *testing.T) {
 	mapFunc := func(x Item) Item {
 		return StringIntEntryItem{Key: x.(StringIntEntryItem).Key, Value: x.(StringIntEntryItem).Value * 2}

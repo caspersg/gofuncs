@@ -21,12 +21,6 @@ import (
 type Item interface {
 }
 
-// FoldableItem is for when an Item also happens to be Foldable
-// the generic functions below can return foldables, so we need a conversion method
-type FoldableItem interface {
-	AsFoldable() Foldable
-}
-
 // Foldable this needs to be implemented for each specific type
 type Foldable interface {
 	// the main way to process the Items within a Foldable
@@ -43,23 +37,20 @@ type Foldable interface {
 // Map applies a function to each item inside the foldable
 func Map(foldable Foldable, mapFunc func(Item) Item) Foldable {
 	result := foldable.Foldl(foldable.Init(), func(result, next Item) Item {
-		// TODO just cast to Foldable
-		return result.(FoldableItem).AsFoldable().
-			Append(mapFunc(next))
+		return result.(Foldable).Append(mapFunc(next))
 	})
-	return result.(FoldableItem).AsFoldable()
+	return result.(Foldable)
 }
 
 // Filter returns all the items which pass the filter func
 func Filter(foldable Foldable, filterFunc func(Item) bool) Foldable {
 	result := foldable.Foldl(foldable.Init(), func(result, next Item) Item {
 		if filterFunc(next) {
-			return result.(FoldableItem).AsFoldable().
-				Append(next)
+			return result.(Foldable).Append(next)
 		}
 		return result
 	})
-	return result.(FoldableItem).AsFoldable()
+	return result.(Foldable)
 }
 
 // some generic functions operate on int values, so we need to define an internal intItem type.
@@ -100,9 +91,9 @@ func Any(foldable Foldable, filterFunc func(Item) bool) bool {
 // Concat concatenates the parameters
 func Concat(a, b Foldable) Foldable {
 	result := b.Foldl(a, func(result, next Item) Item {
-		return result.(FoldableItem).AsFoldable().Append(next)
+		return result.(Foldable).Append(next)
 	})
-	return result.(FoldableItem).AsFoldable()
+	return result.(Foldable)
 }
 
 // an internal type to store temporary result values
@@ -110,11 +101,6 @@ func Concat(a, b Foldable) Foldable {
 type intAndFoldable struct {
 	Int int
 	Foldable
-}
-
-// this method needs to be define, but it doesn't have to be functional as it is not needed
-func (i intAndFoldable) AsFoldable() Foldable {
-	panic("not supported")
 }
 
 // Take will return the first n Items in a Foldable
@@ -173,5 +159,5 @@ func ParMap(foldable Foldable, mapFunc func(Item) Item) Foldable {
 	for _, p := range pendingResults.([]*resultItem) {
 		result = result.Append(p.Item)
 	}
-	return result.(FoldableItem).AsFoldable()
+	return result.(Foldable)
 }

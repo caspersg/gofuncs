@@ -9,10 +9,6 @@ type StringIntEntryItem struct {
 	Value int
 }
 
-func (entry StringIntEntryItem) AsFoldable() Foldable {
-	return StringIntMapFoldable{Map: map[string]int{entry.Key: entry.Value}}
-}
-
 type StringIntMapFoldable struct {
 	Map map[string]int
 }
@@ -42,8 +38,4 @@ func (foldable StringIntMapFoldable) Init() Foldable {
 func (foldable StringIntMapFoldable) Append(item Item) Foldable {
 	foldable.Map[item.(StringIntEntryItem).Key] = item.(StringIntEntryItem).Value
 	return StringIntMapFoldable{Map: foldable.Map}
-}
-
-func (foldable StringIntMapFoldable) AsFoldable() Foldable {
-	return foldable
 }

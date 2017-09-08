@@ -18,21 +18,6 @@ func TestIntFoldableAppend(t *testing.T) {
 	}
 }
 
-func TestIntFoldableConversions(t *testing.T) {
-	aList := IntFoldable{List: []int{1, 2, 3, 4}}
-	resultList := aList.AsFoldable().(IntFoldable)
-	if !reflect.DeepEqual(resultList.List, aList.List) {
-		t.Errorf("result == %d expected %d", resultList, aList)
-	}
-
-	anItem := IntItem{Value: 1}
-	resultItem := anItem.AsFoldable().(IntFoldable)
-	expected := []int{1}
-	if !reflect.DeepEqual(resultItem.List, expected) {
-		t.Errorf("result == %d expected %d", resultItem, expected)
-	}
-}
-
 func TestIntFoldableMap(t *testing.T) {
 	mapFunc := func(x Item) Item { return IntItem{Value: x.(IntItem).Value * 2} }
 	in := []int{0, 1, 2}
