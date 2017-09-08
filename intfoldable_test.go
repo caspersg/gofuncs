@@ -82,3 +82,21 @@ func TestIntFoldableConcat(t *testing.T) {
 		t.Errorf("result == %d expected %d", result, expected)
 	}
 }
+
+func TestIntFoldableTake(t *testing.T) {
+	x := []int{1, 2, 3, 4, 5, 6}
+	expected := []int{1, 2, 3}
+	result := Take(IntFoldable{List: x}, 3)
+	if !SliceEqual(result.(IntFoldable).List, expected) {
+		t.Errorf("result == %d expected %d", result, expected)
+	}
+}
+
+func TestIntFoldableDrop(t *testing.T) {
+	x := []int{1, 2, 3, 4, 5, 6}
+	expected := []int{4, 5, 6}
+	result := Drop(IntFoldable{List: x}, 3)
+	if !SliceEqual(result.(IntFoldable).List, expected) {
+		t.Errorf("result == %d expected %d", result, expected)
+	}
+}

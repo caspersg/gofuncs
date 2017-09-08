@@ -1,8 +1,5 @@
 package funcs
 
-// Func a function from a to b
-type Func func(int) int
-
 // MapInt : functional map over int array
 func MapInt(f func(int) int, a []int) []int {
 	if f == nil {

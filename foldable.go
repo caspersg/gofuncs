@@ -93,3 +93,43 @@ func Concat(a, b Foldable) Foldable {
 	})
 	return result.AsFoldable()
 }
+
+// an internal type to store temporary result values
+// these would need to be defined for each use case
+type intAndFoldable struct {
+	Int int
+	Foldable
+}
+
+// this method needs to be define, but it doesn't have to be functional as it is not needed
+func (i intAndFoldable) AsFoldable() Foldable {
+	panic("not supported")
+}
+
+// Take will return the first n Items in a Foldable
+func Take(foldable Foldable, number int) Foldable {
+	init := intAndFoldable{Int: 0, Foldable: foldable.Init()}
+	result := foldable.Foldl(init, func(result, next Item) Item {
+		count := result.(intAndFoldable).Int
+		previous := result.(intAndFoldable).Foldable
+		if count < number {
+			return intAndFoldable{Int: count + 1, Foldable: previous.Append(next)}
+		}
+		return result
+	})
+	return result.(intAndFoldable).Foldable
+}
+
+// Drop will return only the items after the first n Items in a Foldable
+func Drop(foldable Foldable, number int) Foldable {
+	init := intAndFoldable{Int: 0, Foldable: foldable.Init()}
+	result := foldable.Foldl(init, func(result, next Item) Item {
+		count := result.(intAndFoldable).Int
+		previous := result.(intAndFoldable).Foldable
+		if count >= number {
+			return intAndFoldable{Int: count + 1, Foldable: previous.Append(next)}
+		}
+		return intAndFoldable{Int: count + 1, Foldable: previous}
+	})
+	return result.(intAndFoldable).Foldable
+}

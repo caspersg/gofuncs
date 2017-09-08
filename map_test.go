@@ -4,7 +4,7 @@ import "testing"
 
 func TestMapInt(t *testing.T) {
 	cases := []struct {
-		inF  Func
+		inF  func(int) int
 		inA  []int
 		want []int
 	}{
