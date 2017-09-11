@@ -22,8 +22,7 @@ import (
 
 // Item could be a single value, like an int, or another Foldable
 // it takes the place of the generic type
-type Item interface {
-}
+type Item interface{}
 
 // Foldable this needs to be implemented for each specific type
 type Foldable interface {

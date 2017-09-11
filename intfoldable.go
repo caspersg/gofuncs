@@ -2,10 +2,6 @@ package funcs
 
 // lets use int as an example implementation
 
-type IntItem struct {
-	Value int
-}
-
 type IntFoldable struct {
 	List []int
 }
@@ -13,7 +9,7 @@ type IntFoldable struct {
 func (intFoldable IntFoldable) Foldl(init Item, foldFunc func(result, next Item) Item) Item {
 	result := init
 	for _, x := range intFoldable.List {
-		result = foldFunc(result, IntItem{Value: x})
+		result = foldFunc(result, x)
 	}
 	return result
 }
@@ -23,5 +19,5 @@ func (intFoldable IntFoldable) Init() Foldable {
 }
 
 func (intFoldable IntFoldable) Append(item Item) Foldable {
-	return IntFoldable{List: append(intFoldable.List, item.(IntItem).Value)}
+	return IntFoldable{List: append(intFoldable.List, item.(int))}
 }

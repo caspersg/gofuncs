@@ -8,7 +8,7 @@ import (
 )
 
 func TestIntFoldableAppend(t *testing.T) {
-	anItem := IntItem{Value: 5}
+	anItem := 5
 
 	aList := IntFoldable{List: []int{1, 2, 3, 4}}
 	appendResult := aList.Append(anItem).(IntFoldable).List
@@ -19,7 +19,7 @@ func TestIntFoldableAppend(t *testing.T) {
 }
 
 func TestIntFoldableMap(t *testing.T) {
-	mapFunc := func(x Item) Item { return IntItem{Value: x.(IntItem).Value * 2} }
+	mapFunc := func(x Item) Item { return x.(int) * 2 }
 	in := []int{0, 1, 2}
 	expected := []int{0, 2, 4}
 	got := Map(IntFoldable{List: in}, mapFunc)
@@ -29,7 +29,7 @@ func TestIntFoldableMap(t *testing.T) {
 }
 
 func TestIntFoldableFilter(t *testing.T) {
-	isNegative := func(x Item) bool { return x.(IntItem).Value < 0 }
+	isNegative := func(x Item) bool { return x.(int) < 0 }
 	in := []int{0, -1, 1, 2, -30}
 	expected := []int{-1, -30}
 	got := Filter(IntFoldable{List: in}, isNegative)
@@ -46,7 +46,7 @@ func TestIntFoldableLength(t *testing.T) {
 	}
 }
 func TestIntFoldableAll(t *testing.T) {
-	isNegative := func(x Item) bool { return x.(IntItem).Value < 0 }
+	isNegative := func(x Item) bool { return x.(int) < 0 }
 	in := []int{0, -1, 1, 2, -30}
 	allNegative := All(IntFoldable{List: in}, isNegative)
 	if allNegative {
@@ -55,7 +55,7 @@ func TestIntFoldableAll(t *testing.T) {
 }
 
 func TestIntFoldableAny(t *testing.T) {
-	isNegative := func(x Item) bool { return x.(IntItem).Value < 0 }
+	isNegative := func(x Item) bool { return x.(int) < 0 }
 	in := []int{0, -1, 1, 2, -30}
 	anyNegative := Any(IntFoldable{List: in}, isNegative)
 	if !anyNegative {
@@ -95,7 +95,7 @@ func TestIntFoldableParMap(t *testing.T) {
 	mapFunc := func(x Item) Item {
 		time.Sleep(2 * time.Second)
 		fmt.Println("processing Item", x)
-		return IntItem{Value: x.(IntItem).Value * 2}
+		return x.(int) * 2
 	}
 	in := []int{1, 2, 3}
 	expected := []int{2, 4, 6}

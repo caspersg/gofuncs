@@ -1,9 +1,5 @@
 package funcs
 
-type BoolItem struct {
-	Value bool
-}
-
 type BoolFoldable struct {
 	List []bool
 }
@@ -11,7 +7,7 @@ type BoolFoldable struct {
 func (boolFoldable BoolFoldable) Foldl(init Item, foldFunc func(result, next Item) Item) Item {
 	result := init
 	for _, x := range boolFoldable.List {
-		result = foldFunc(result, BoolItem{Value: x})
+		result = foldFunc(result, x)
 	}
 	return result
 }
@@ -21,5 +17,5 @@ func (boolFoldable BoolFoldable) Init() Foldable {
 }
 
 func (boolFoldable BoolFoldable) Append(item Item) Foldable {
-	return BoolFoldable{List: append(boolFoldable.List, item.(BoolItem).Value)}
+	return BoolFoldable{List: append(boolFoldable.List, item.(bool))}
 }

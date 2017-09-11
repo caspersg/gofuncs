@@ -4,6 +4,7 @@ import (
 	"sort"
 )
 
+// StringIntEntryItem is the key value pair
 type StringIntEntryItem struct {
 	Key   string
 	Value int
