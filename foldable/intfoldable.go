@@ -1,4 +1,4 @@
-package funcs
+package foldable
 
 // lets use int as an example implementation
 

@@ -1,4 +1,4 @@
-package funcs
+package foldable
 
 type BoolFoldable struct {
 	List []bool
