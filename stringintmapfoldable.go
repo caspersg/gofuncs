@@ -24,7 +24,7 @@ func (foldable StringIntMapFoldable) sortedKeys() []string {
 	return keys
 }
 
-func (foldable StringIntMapFoldable) Foldl(init Item, foldFunc func(result, next Item) Item) Item {
+func (foldable StringIntMapFoldable) Foldl(init T, foldFunc func(result, next T) T) T {
 	result := init
 	for _, key := range foldable.sortedKeys() {
 		result = foldFunc(result, StringIntEntryItem{Key: key, Value: foldable.Map[key]})
@@ -36,7 +36,7 @@ func (foldable StringIntMapFoldable) Init() Foldable {
 	return StringIntMapFoldable{Map: make(map[string]int)}
 }
 
-func (foldable StringIntMapFoldable) Append(item Item) Foldable {
+func (foldable StringIntMapFoldable) Append(item T) Foldable {
 	foldable.Map[item.(StringIntEntryItem).Key] = item.(StringIntEntryItem).Value
 	return StringIntMapFoldable{Map: foldable.Map}
 }

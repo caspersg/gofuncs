@@ -18,7 +18,7 @@ func TestStringIntMapFoldableAppend(t *testing.T) {
 }
 
 func TestStringIntMapFoldableMap(t *testing.T) {
-	mapFunc := func(x Item) Item {
+	mapFunc := func(x T) T {
 		return StringIntEntryItem{Key: x.(StringIntEntryItem).Key, Value: x.(StringIntEntryItem).Value * 2}
 	}
 	in := StringIntMapFoldable{Map: map[string]int{"a": 1, "b": 2, "c": 3}}
@@ -30,7 +30,7 @@ func TestStringIntMapFoldableMap(t *testing.T) {
 }
 
 func TestStringIntMapFoldableFilter(t *testing.T) {
-	isNegative := func(x Item) bool { return x.(StringIntEntryItem).Value < 0 }
+	isNegative := func(x T) bool { return x.(StringIntEntryItem).Value < 0 }
 	in := StringIntMapFoldable{Map: map[string]int{"a": 1, "b": -2, "c": 3, "d": -30}}
 	expected := map[string]int{"b": -2, "d": -30}
 	got := Filter(in, isNegative)
@@ -47,7 +47,7 @@ func TestStringIntMapFoldableLength(t *testing.T) {
 	}
 }
 func TestStringIntMapFoldableAll(t *testing.T) {
-	isNegative := func(x Item) bool { return x.(StringIntEntryItem).Value < 0 }
+	isNegative := func(x T) bool { return x.(StringIntEntryItem).Value < 0 }
 	in := StringIntMapFoldable{Map: map[string]int{"a": 1, "b": -2, "c": 3, "d": -30}}
 	allNegative := All(in, isNegative)
 	if allNegative {
@@ -56,7 +56,7 @@ func TestStringIntMapFoldableAll(t *testing.T) {
 }
 
 func TestStringIntMapFoldableAny(t *testing.T) {
-	isB := func(x Item) bool { return x.(StringIntEntryItem).Key == "b" }
+	isB := func(x T) bool { return x.(StringIntEntryItem).Key == "b" }
 	in := StringIntMapFoldable{Map: map[string]int{"a": 1, "b": -2, "c": 3, "d": -30}}
 	anyB := Any(in, isB)
 	if !anyB {
@@ -93,7 +93,7 @@ func TestStringIntMapFoldableDrop(t *testing.T) {
 }
 
 func TestStringIntMapFoldableParMap(t *testing.T) {
-	mapFunc := func(x Item) Item {
+	mapFunc := func(x T) T {
 		time.Sleep(2 * time.Second)
 		fmt.Println("processing Item", x)
 		return StringIntEntryItem{Key: x.(StringIntEntryItem).Key, Value: x.(StringIntEntryItem).Value * 2}
