@@ -176,3 +176,28 @@ func Partition(foldable Foldable, filterFunc func(T) bool) (pass, failed Foldabl
 	}).(foldableTuple)
 	return result.Pass, result.Fail
 }
+
+func ToList(foldable Foldable) []T {
+	return foldable.Foldl([]T{}, func(result, next T) T {
+		return append(result.([]T), next)
+	}).([]T)
+}
+
+// Pair a tuple of two somethings
+type Pair struct {
+	Left  T
+	Right T
+}
+
+// Zip combines corresponding pairs of values, only up to the shortest of a and b
+func Zip(a, b Foldable) Foldable {
+	result := a.Init()
+
+	bList := ToList(b)
+	for i, x := range ToList(a) {
+		if len(bList) > i {
+			result = result.Append(Pair{x, bList[i]})
+		}
+	}
+	return result
+}
