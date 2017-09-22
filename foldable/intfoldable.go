@@ -1,7 +1,5 @@
 package foldable
 
-// lets use int as an example implementation
-
 type IntFoldable struct {
 	List []int
 }

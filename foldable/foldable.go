@@ -4,27 +4,35 @@ import (
 	"sync"
 )
 
-//
-// go does not support generics
+// I wanted to explore some basic functional list processing and see what could be done
+// The idea is to have as much reusable code which can be derived from the smallest amount of unique code that needs to be writtern for each implementation.
+// The ideal case is where zero unique code needs to be written for each case, which is why generics is helpful in statically typed languages
+
+// go does not support generics though
 // code generation is an option, (like https://github.com/cheekybits/genny) but it's an added complication
-// the core of the problem is to be able to re-use code
-// so what language features does go have to allow code re-use
+// the core of the problem is not being able to re-use code
+// so without generics what language features does go have to allow this kind of code re-use
 // interfaces.
-// so I wanted to explore some basic functional list processing and see what could be done
 
 // interfaces can only be defined on structs
-// so every type will need to be wrapped in a struct
-// the implementation will need to be responsible for how the actual value is wrapped/unwrapped
-// the call site also needs to wrap and unwrap as well as cast
+// so every basic value will need to be wrapped in a struct
+// the implementation of the interface will need to be responsible for how the actual value is wrapped/unwrapped
+// each call site also needs to wrap and unwrap as well as cast the value from the generic type T
 // this is obviously sacrificing a fair bit of type safety
 // but the casts are restricted to functions you pass in and the overall result
-// and the user should be aware of what those types are
+// and the user should be aware of what those types are, as they will more than likely be at the call site
 
 // T could be a single value, like an int, or another Foldable
-// it takes the place of the generic type
+// T is *the* abstract type.
+// go doesn't have generics, so the user code needs to cast to and from it
+// this is similar to java before version 1.5, which is when java got generics
+// because go also doesn't have covariant type checking, this generic type will also leak a bit further into the code
 type T interface{}
 
-// Foldable this needs to be implemented for each specific type
+// Foldable needs to be implemented for each specific type
+// initially I implemented for each container type and value type, like IntListFoldable
+// but it can also be implemented for just the container type on a generic value, like List
+// the main difference is that the generic list type requires that individual values need to be cast as well
 type Foldable interface {
 	// the main way to process the Items within a Foldable
 	Foldl(init T, f func(result, next T) T) T
@@ -34,8 +42,7 @@ type Foldable interface {
 	Append(item T) Foldable
 }
 
-// there's a few things that can be defined with just a (left) fold
-// the interface Foldable *cannot* be the receiver of the function, but that just shows that it can work with any type
+// there's a large number of functions that can be defined with just a (left) fold
 
 // Map applies a function to each item inside the foldable
 func Map(foldable Foldable, mapFunc func(T) T) Foldable {

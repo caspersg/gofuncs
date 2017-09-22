@@ -2,7 +2,7 @@ package listable
 
 import (
 	"fmt"
-	// "reflect"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -23,11 +23,12 @@ func TestIntFoldableMap(t *testing.T) {
 	mapFunc := func(x T) T { return x.(int) * 2 }
 	// no auto-boxing of base types into struct, so the below line cannot work
 	// got := Map([]int{0, 1, 2}.([]T), mapFunc)
+	// this also a case where the generic type T leaks out further into the code than we'd like, due to lack of covariant type checking
 	// therefore the type of the input MUST be []T
 	in := []T{0, 1, 2}
-	expected := []int{0, 2, 4}
+	expected := []T{0, 2, 4}
 	got := Map(in, mapFunc)
-	if !listContentsEqual(expected, got) {
+	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
@@ -37,7 +38,7 @@ func TestIntFoldableFilter(t *testing.T) {
 	in := []T{0, -1, 1, 2, -30}
 	expected := []int{-1, -30}
 	got := Filter(in, isNegative)
-	if !listContentsEqual(expected, got) {
+	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
@@ -72,7 +73,7 @@ func TestIntFoldableConcat(t *testing.T) {
 	b := []T{4, 5, 6}
 	expected := []int{1, 2, 3, 4, 5, 6}
 	got := Concat(a, b)
-	if !listContentsEqual(expected, got) {
+	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
@@ -81,7 +82,7 @@ func TestIntFoldableConcat(t *testing.T) {
 // 	x := []int{1, 2, 3, 4, 5, 6}
 // 	expected := []int{1, 2, 3}
 // 	result := Take(IntFoldable{List: x}, 3)
-// 	if !reflect.DeepEqual(result.(IntFoldable).List, expected) {
+// if !reflect.DeepEqual(got, expected) {
 // 		t.Errorf("result == %d expected %d", result, expected)
 // 	}
 // }
@@ -104,7 +105,7 @@ func TestIntFoldableParMap(t *testing.T) {
 	in := []T{1, 2, 3}
 	expected := []int{2, 4, 6}
 	got := ParMap(in, mapFunc)
-	if !listContentsEqual(expected, got) {
+	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
