@@ -109,8 +109,8 @@ func Concat(a, b Foldable) Foldable {
 // an internal type to store temporary result values
 // these would need to be defined for each use case
 type intAndFoldable struct {
-	Int int
-	Foldable
+	Int      int
+	Foldable Foldable
 }
 
 // Take will return the first n Items in a Foldable
@@ -166,4 +166,21 @@ func ParMap(foldable Foldable, mapFunc func(T) T) Foldable {
 		result = result.Append(*item)
 	}
 	return result.(Foldable)
+}
+
+type foldableTuple struct {
+	Pass Foldable
+	Fail Foldable
+}
+
+// Partition returns a the set of elements which both pass and fail the filter function
+func Partition(foldable Foldable, filterFunc func(T) bool) (pass, failed Foldable) {
+	result := foldable.Foldl(foldableTuple{foldable.Init(), foldable.Init()}, func(result, next T) T {
+		previous := result.(foldableTuple)
+		if filterFunc(next) {
+			return foldableTuple{Pass: previous.Pass.Append(next), Fail: previous.Fail}
+		}
+		return foldableTuple{Pass: previous.Pass, Fail: previous.Fail.Append(next)}
+	}).(foldableTuple)
+	return result.Pass, result.Fail
 }

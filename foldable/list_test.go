@@ -103,3 +103,17 @@ func TestListParMap(t *testing.T) {
 		t.Errorf("result == %d expected %d", got, expected)
 	}
 }
+
+func TestListPartition(t *testing.T) {
+	isNegative := func(x T) bool { return x.(int) < 0 }
+	in := []T{0, -1, 1, 2, -30}
+	expectedPass := []T{-1, -30}
+	expectedFail := []T{0, 1, 2}
+	pass, fail := Partition(List{Value: in}, isNegative)
+	if !reflect.DeepEqual(expectedPass, pass.(List).Value) {
+		t.Errorf("result == %d expected %d", pass, expectedPass)
+	}
+	if !reflect.DeepEqual(expectedFail, fail.(List).Value) {
+		t.Errorf("result == %d expected %d", fail, expectedFail)
+	}
+}
