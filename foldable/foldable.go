@@ -33,6 +33,7 @@ type T interface{}
 // initially I implemented for each container type and value type, like IntListFoldable
 // but it can also be implemented for just the container type on a generic value, like List
 // the main difference is that the generic list type requires that individual values need to be cast as well
+// This has some similarities with Monads and Functors, but is hopefully more useful in go
 type Foldable interface {
 	// the main way to process the Items within a Foldable
 	Foldl(init T, f func(result, next T) T) T
@@ -189,6 +190,7 @@ func ToList(foldable Foldable) []T {
 }
 
 // Zip combines corresponding pairs of values, only up to the shortest of a and b
+// It needs to convert the foldables into lists, so we can get value by index
 func Zip(a, b Foldable) Foldable {
 	result := a.Init()
 	bList := ToList(b)
@@ -200,6 +202,7 @@ func Zip(a, b Foldable) Foldable {
 	return result
 }
 
+// Unzip is the reverse process of Zip
 func Unzip(zipped Foldable) (left, right Foldable) {
 	result := zipped.Foldl(Pair{zipped.Init(), zipped.Init()}, func(result, next T) T {
 		previous := result.(Pair)
@@ -208,4 +211,12 @@ func Unzip(zipped Foldable) (left, right Foldable) {
 			Right: previous.Right.(Foldable).Append(next.(Pair).Right)}
 	}).(Pair)
 	return result.Left.(Foldable), result.Right.(Foldable)
+}
+
+// MapToType is the same as Map, but requires a target type in order to convert to a different type of Foldable result
+// the equivilant fold is much more complex
+func MapToType(target Foldable, foldable Foldable, mapFunc func(T) T) Foldable {
+	return foldable.Foldl(target.Init(), func(result, next T) T {
+		return result.(Foldable).Append(mapFunc(next))
+	}).(Foldable)
 }
