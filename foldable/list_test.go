@@ -126,10 +126,22 @@ func TestListZip(t *testing.T) {
 	if !reflect.DeepEqual(expected, got) {
 		t.Errorf("result == %v expected %v", got, expected)
 	}
-
+	// length mismatch in other direction
 	expected = []T{Pair{4, 1}, Pair{5, 2}, Pair{6, 3}}
 	got = Zip(List{Value: b}, List{Value: a}).(List).Value
 	if !reflect.DeepEqual(expected, got) {
 		t.Errorf("result == %v expected %v", got, expected)
+	}
+}
+
+func TestListUnzip(t *testing.T) {
+	a := []T{1, 2, 3}
+	b := []T{4, 5, 6}
+	gotA, gotB := Unzip(Zip(List{Value: a}, List{Value: b}))
+	if !reflect.DeepEqual(a, gotA.(List).Value) {
+		t.Errorf("result == %v expected %v", gotA, a)
+	}
+	if !reflect.DeepEqual(b, gotB.(List).Value) {
+		t.Errorf("result == %v expected %v", gotB, b)
 	}
 }

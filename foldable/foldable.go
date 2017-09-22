@@ -160,21 +160,26 @@ func ParMap(foldable Foldable, mapFunc func(T) T) Foldable {
 	return result.(Foldable)
 }
 
-type foldableTuple struct {
-	Pass Foldable
-	Fail Foldable
+// Pair a tuple of two somethings
+type Pair struct {
+	Left  T
+	Right T
 }
 
 // Partition returns a the set of elements which both pass and fail the filter function
 func Partition(foldable Foldable, filterFunc func(T) bool) (pass, failed Foldable) {
-	result := foldable.Foldl(foldableTuple{foldable.Init(), foldable.Init()}, func(result, next T) T {
-		previous := result.(foldableTuple)
+	result := foldable.Foldl(Pair{foldable.Init(), foldable.Init()}, func(result, next T) T {
+		previous := result.(Pair)
 		if filterFunc(next) {
-			return foldableTuple{Pass: previous.Pass.Append(next), Fail: previous.Fail}
+			return Pair{
+				Left:  previous.Left.(Foldable).Append(next),
+				Right: previous.Right}
 		}
-		return foldableTuple{Pass: previous.Pass, Fail: previous.Fail.Append(next)}
-	}).(foldableTuple)
-	return result.Pass, result.Fail
+		return Pair{
+			Left:  previous.Left,
+			Right: previous.Right.(Foldable).Append(next)}
+	}).(Pair)
+	return result.Left.(Foldable), result.Right.(Foldable)
 }
 
 func ToList(foldable Foldable) []T {
@@ -183,16 +188,9 @@ func ToList(foldable Foldable) []T {
 	}).([]T)
 }
 
-// Pair a tuple of two somethings
-type Pair struct {
-	Left  T
-	Right T
-}
-
 // Zip combines corresponding pairs of values, only up to the shortest of a and b
 func Zip(a, b Foldable) Foldable {
 	result := a.Init()
-
 	bList := ToList(b)
 	for i, x := range ToList(a) {
 		if len(bList) > i {
@@ -200,4 +198,14 @@ func Zip(a, b Foldable) Foldable {
 		}
 	}
 	return result
+}
+
+func Unzip(zipped Foldable) (left, right Foldable) {
+	result := zipped.Foldl(Pair{zipped.Init(), zipped.Init()}, func(result, next T) T {
+		previous := result.(Pair)
+		return Pair{
+			Left:  previous.Left.(Foldable).Append(next.(Pair).Left),
+			Right: previous.Right.(Foldable).Append(next.(Pair).Right)}
+	}).(Pair)
+	return result.Left.(Foldable), result.Right.(Foldable)
 }
