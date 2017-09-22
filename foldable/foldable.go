@@ -46,21 +46,19 @@ type Foldable interface {
 
 // Map applies a function to each item inside the foldable
 func Map(foldable Foldable, mapFunc func(T) T) Foldable {
-	result := foldable.Foldl(foldable.Init(), func(result, next T) T {
+	return foldable.Foldl(foldable.Init(), func(result, next T) T {
 		return result.(Foldable).Append(mapFunc(next))
 	}).(Foldable)
-	return result
 }
 
 // Filter returns all the items which pass the filter func
 func Filter(foldable Foldable, filterFunc func(T) bool) Foldable {
-	result := foldable.Foldl(foldable.Init(), func(result, next T) T {
+	return foldable.Foldl(foldable.Init(), func(result, next T) T {
 		if filterFunc(next) {
 			return result.(Foldable).Append(next)
 		}
 		return result
 	}).(Foldable)
-	return result
 }
 
 // some generic functions operate on int values, so we need to define an internal intItem type.
@@ -71,10 +69,9 @@ type intItem struct {
 // Length returns the number of items contained in a foldable
 func Length(foldable Foldable) int {
 	count := intItem{Value: 0}
-	result := foldable.Foldl(count, func(result, next T) T {
+	return foldable.Foldl(count, func(result, next T) T {
 		return intItem{Value: result.(intItem).Value + 1}
-	}).(intItem)
-	return result.Value
+	}).(intItem).Value
 }
 
 // some generic functions operate on boolean values, so we need to define an internal boolItem type.
@@ -84,26 +81,23 @@ type boolItem struct {
 
 // All returns true if all items pass the filterFunc
 func All(foldable Foldable, filterFunc func(T) bool) bool {
-	result := foldable.Foldl(boolItem{Value: true}, func(result, next T) T {
+	return foldable.Foldl(boolItem{Value: true}, func(result, next T) T {
 		return boolItem{Value: result.(boolItem).Value && filterFunc(next)}
-	}).(boolItem)
-	return result.Value
+	}).(boolItem).Value
 }
 
 // Any returns true if any of the items pass the filterFunc
 func Any(foldable Foldable, filterFunc func(T) bool) bool {
-	result := foldable.Foldl(boolItem{Value: false}, func(result, next T) T {
+	return foldable.Foldl(boolItem{Value: false}, func(result, next T) T {
 		return boolItem{Value: (result.(boolItem).Value || filterFunc(next))}
-	}).(boolItem)
-	return result.Value
+	}).(boolItem).Value
 }
 
 // Concat concatenates the parameters
 func Concat(a, b Foldable) Foldable {
-	result := b.Foldl(a, func(result, next T) T {
+	return b.Foldl(a, func(result, next T) T {
 		return result.(Foldable).Append(next)
 	}).(Foldable)
-	return result
 }
 
 // an internal type to store temporary result values
@@ -116,29 +110,27 @@ type intAndFoldable struct {
 // Take will return the first n Items in a Foldable
 func Take(foldable Foldable, number int) Foldable {
 	init := intAndFoldable{Int: 0, Foldable: foldable.Init()}
-	result := foldable.Foldl(init, func(result, next T) T {
+	return foldable.Foldl(init, func(result, next T) T {
 		count := result.(intAndFoldable).Int
 		previous := result.(intAndFoldable).Foldable
 		if count < number {
 			return intAndFoldable{Int: count + 1, Foldable: previous.Append(next)}
 		}
 		return result
-	}).(intAndFoldable)
-	return result.Foldable
+	}).(intAndFoldable).Foldable
 }
 
 // Drop will return only the items after the first n Items in a Foldable
 func Drop(foldable Foldable, number int) Foldable {
 	init := intAndFoldable{Int: 0, Foldable: foldable.Init()}
-	result := foldable.Foldl(init, func(result, next T) T {
+	return foldable.Foldl(init, func(result, next T) T {
 		count := result.(intAndFoldable).Int
 		previous := result.(intAndFoldable).Foldable
 		if count >= number {
 			return intAndFoldable{Int: count + 1, Foldable: previous.Append(next)}
 		}
 		return intAndFoldable{Int: count + 1, Foldable: previous}
-	}).(intAndFoldable)
-	return result.Foldable
+	}).(intAndFoldable).Foldable
 }
 
 func newPromise(waitGroup *sync.WaitGroup, mapFunc func() T) *T {
