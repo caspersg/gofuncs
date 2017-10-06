@@ -147,17 +147,17 @@ func newPromise(waitGroup *sync.WaitGroup, mapFunc func() T) *T {
 // ParMap applies a function in parallel to each item inside the foldable
 func ParMap(foldable Foldable, mapFunc func(T) T) Foldable {
 	waitGroup := &sync.WaitGroup{}
-	init := []*T{}
-	pendingResults := foldable.Foldl(init, func(result, next T) T {
-		promise := newPromise(waitGroup, func() T { return mapFunc(next) })
-		return append(result.([]*T), promise)
-	}).([]*T)
+	// convert each element to a space for the result, use the list foldable for this
+	// this maintains order while the mapFunc is processed in a go func
+	pendingResults := MapToType(List{}, foldable, func(next T) T {
+		return newPromise(waitGroup, func() T { return mapFunc(next) })
+	}).(Foldable)
+	// wait for all go funcs to finish
 	waitGroup.Wait()
-
-	result := foldable.Init()
-	for _, item := range pendingResults {
-		result = result.Append(*item)
-	}
+	// convert the result pointers back to the original type
+	result := MapToType(foldable, pendingResults, func(next T) T {
+		return *next.(*T)
+	})
 	return result.(Foldable)
 }
 
