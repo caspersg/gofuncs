@@ -13,6 +13,8 @@ func (channel Channel) Foldl(init T, foldFunc func(result, next T) T) T {
 	if reflect.TypeOf(result).Name() == "Channel" {
 		// if the result is a channel we need some special handling
 		// for instance, we don't want to block on processing, so we process in a go func and return the result channel
+		// this is a pretty major concession to channels, but they are treated specially in go
+		// and there are no other special cases like this, so I think it's acceptable
 		go func() {
 			for item := range channel {
 				// normally a fold would reassign the result here, but a channel is naturally mutable

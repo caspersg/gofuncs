@@ -1,6 +1,7 @@
 package foldable
 
 import (
+	"reflect"
 	"sync"
 )
 
@@ -155,10 +156,13 @@ func ParMap(foldable Foldable, mapFunc func(T) T) Foldable {
 	// wait for all go funcs to finish
 	waitGroup.Wait()
 	// convert the result pointers back to the original type
-	result := MapToType(foldable, pendingResults, func(next T) T {
-		return *next.(*T)
-	})
-	return result.(Foldable)
+	derefPointer := func(next T) T { return *next.(*T) }
+	if reflect.TypeOf(foldable).Name() == "Channel" {
+		// channels need special handling
+		// this should only be needed when we're converting from one foldable to another type
+		return Map(ToChannel(pendingResults), derefPointer).(Foldable)
+	}
+	return MapToType(foldable, pendingResults, derefPointer).(Foldable)
 }
 
 // Pair a tuple of two somethings
@@ -221,7 +225,8 @@ func MapToType(target Foldable, foldable Foldable, mapFunc func(T) T) Foldable {
 	}).(Foldable)
 }
 
-// ToChannel is used when the result of some process will be a channel foldable.
+// ToChannel alternative to MapToType (but for Channel)
+// is used when the result of some process will be a channel foldable.
 // if the result is a channel we need some special handling
 // for instance, we don't want to block on processing, so we process in a go func and return the result channel
 // this needs to be called manually in certain instances, like when calling Map on a Channel.

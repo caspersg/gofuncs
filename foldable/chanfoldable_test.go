@@ -69,29 +69,31 @@ func TestChannelMapTwice(t *testing.T) {
 	}
 }
 
-// func TestChannelParMap(t *testing.T) {
-// 	expected := []int{3, 5, 7}
-// 	// create initial data
-// 	channel := make(Channel)
-// 	go func() {
-// 		channel <- 1
-// 		channel <- 2
-// 		channel <- 3
-// 		close(channel)
-// 	}()
-// 	// use gofuncs
-// 	gotChannel := ParMap(
-// 		Map(channel, func(item T) T { return item.(int) * 2 }).(Channel),
-// 		func(item T) T { return item.(int) + 1 }).(Channel)
-// 	// get result
-// 	got := []int{}
-// 	for x := range gotChannel {
-// 		got = append(got, x.(int))
-// 	}
-// 	if !reflect.DeepEqual(expected, got) {
-// 		t.Errorf("result == %v expected %v", got, expected)
-// 	}
-// }
+func TestChannelParMap(t *testing.T) {
+	expected := []int{2, 3, 4}
+	// create initial data
+	channel := make(Channel)
+	go func() {
+		channel <- 1
+		channel <- 2
+		channel <- 3
+		close(channel)
+	}()
+	// use gofuncs
+	gotChannel := ParMap(
+		channel,
+		func(item T) T {
+			return item.(int) + 1
+		}).(Channel)
+	// get result
+	got := []int{}
+	for x := range gotChannel {
+		got = append(got, x.(int))
+	}
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("result == %v expected %v", got, expected)
+	}
+}
 
 func TestChannelFilter(t *testing.T) {
 	expected := []int{-1, -2, -53}
