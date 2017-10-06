@@ -1,12 +1,10 @@
 package foldable
 
-type IntFoldable struct {
-	List []int
-}
+type IntFoldable []int
 
 func (intFoldable IntFoldable) Foldl(init T, foldFunc func(result, next T) T) T {
 	result := init
-	for _, x := range intFoldable.List {
+	for _, x := range intFoldable {
 		result = foldFunc(result, x)
 	}
 	return result
@@ -17,5 +15,5 @@ func (intFoldable IntFoldable) Init() Foldable {
 }
 
 func (intFoldable IntFoldable) Append(item T) Foldable {
-	return IntFoldable{List: append(intFoldable.List, item.(int))}
+	return append(intFoldable, item.(int))
 }
