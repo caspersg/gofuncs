@@ -138,3 +138,22 @@ func TestChannelLength(t *testing.T) {
 		t.Errorf("result == %v expected %v", got, expected)
 	}
 }
+
+func TestListToChannel(t *testing.T) {
+	expected := []int{2, 4, 6}
+	// create initial data
+	in := List{1, 2, 3}
+	// use gofuncs
+	gotChannel := Map(
+		ToChannel(in),
+		func(x T) T { return x.(int) * 2 },
+	)
+	// get result
+	got := []int{}
+	for x := range gotChannel.(Channel) {
+		got = append(got, x.(int))
+	}
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("result == %v expected %v", got, expected)
+	}
+}

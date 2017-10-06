@@ -220,3 +220,22 @@ func MapToType(target Foldable, foldable Foldable, mapFunc func(T) T) Foldable {
 		return result.(Foldable).Append(mapFunc(next))
 	}).(Foldable)
 }
+
+// ToChannel is used when the result of some process will be a channel foldable.
+// if the result is a channel we need some special handling
+// for instance, we don't want to block on processing, so we process in a go func and return the result channel
+// this needs to be called manually in certain instances, like when calling Map on a Channel.
+// Otherwise we don't know when folding over a channel should be done async, or when to close the result channel
+func ToChannel(foldable Foldable) Channel {
+	result := make(Channel)
+	go func() {
+		foldable.Foldl(result, func(result, next T) T {
+			// normally a fold would reassign the result here, but a channel is naturally mutable
+			// so we're relying on the foldFunc to use Append to mutate the passed in result
+			// this isn't very functional, but shouldn't be a real problem if the interface is used as intended
+			return result.(Channel).Append(next)
+		})
+		close(result)
+	}()
+	return result
+}
