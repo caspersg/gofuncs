@@ -135,14 +135,14 @@ func Drop(foldable Foldable, number int) Foldable {
 	}).(intAndFoldable).Foldable
 }
 
-func newPromise(waitGroup *sync.WaitGroup, mapFunc func() T) *T {
-	var p T
+func async(waitGroup *sync.WaitGroup, mapFunc func() T) *T {
+	var r T
 	waitGroup.Add(1)
 	go func() {
-		p = mapFunc()
+		r = mapFunc()
 		waitGroup.Done()
 	}()
-	return &p
+	return &r
 }
 
 // ParMap applies a function in parallel to each item inside the foldable
@@ -151,7 +151,7 @@ func ParMap(foldable Foldable, mapFunc func(T) T) Foldable {
 	// convert each element to a space for the result, use the list foldable for this
 	// this maintains order while the mapFunc is processed in a go func
 	pendingResults := MapToType(List{}, foldable, func(next T) T {
-		return newPromise(waitGroup, func() T { return mapFunc(next) })
+		return async(waitGroup, func() T { return mapFunc(next) })
 	}).(Foldable)
 	// wait for all go funcs to finish
 	waitGroup.Wait()

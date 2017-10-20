@@ -99,14 +99,14 @@ func Concat(a, b []T) []T {
 // 	return result.Foldable
 // }
 
-func newPromise(waitGroup *sync.WaitGroup, mapFunc func() T) *T {
-	var p T
+func async(waitGroup *sync.WaitGroup, mapFunc func() T) *T {
+	var r T
 	waitGroup.Add(1)
 	go func() {
-		p = mapFunc()
+		r = mapFunc()
 		waitGroup.Done()
 	}()
-	return &p
+	return &r
 }
 
 // ParMap applies a function in parallel to each item inside the foldable
@@ -114,8 +114,8 @@ func ParMap(list []T, mapFunc func(T) T) []T {
 	waitGroup := &sync.WaitGroup{}
 	init := []*T{}
 	pendingResults := Foldl(list, init, func(result, next T) T {
-		promise := newPromise(waitGroup, func() T { return mapFunc(next) })
-		return append(result.([]*T), promise)
+		asyncResult := async(waitGroup, func() T { return mapFunc(next) })
+		return append(result.([]*T), asyncResult)
 	}).([]*T)
 	waitGroup.Wait()
 
