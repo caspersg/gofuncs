@@ -157,6 +157,7 @@ func ParMap(foldable Foldable, mapFunc func(T) T) Foldable {
 	waitGroup.Wait()
 	// convert the result pointers back to the original type
 	derefPointer := func(next T) T { return *next.(*T) }
+	// instead of reflection, the Foldable interface could be extended to answer the question
 	if reflect.TypeOf(foldable).Name() == "Channel" {
 		// channels need special handling
 		// this should only be needed when we're converting from one foldable to another type
