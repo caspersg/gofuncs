@@ -150,22 +150,26 @@ func interfaceClientVersion(client iClient, entityID, delta string, updateOption
 // but it would still need integration testing, so not a lot is lost
 func FunctionDependenciesVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
 	return functionDependenciesVersion(
-		func() (dbclient, error) {
-			return NewDbClient(dbconnectionstring(dbhost))
-		},
+		clientDep(dbhost),
 		queryDep(entityID),
 		updateDep(delta, updateOptions),
 	)
 }
 
+// extracting the dependencies to functions allows them to be tested separately
+func clientDep(dbhost string) func() (dbclient, error) {
+	return func() (dbclient, error) {
+		return NewDbClient(dbconnectionstring(dbhost))
+	}
+}
+
+// This can be tested using mocks and pure functions to confirm it behaves correctly
 func queryDep(entityID string) func(client dbclient) ([]string, error) {
 	return func(client dbclient) ([]string, error) {
 		return client.DbQuery(makeQuery(entityID))
 	}
 }
 
-// If the dependency is more complicated then it can be extracted to a separate function like this
-// This can be tested using mocks and pure functions to confirm it behaves correctly
 func updateDep(delta string, updateOptions map[string]string) func(client dbclient, result string) error {
 	return func(client dbclient, field string) error {
 		return client.DbUpdate(updateOptions, field, delta)
@@ -177,6 +181,9 @@ func updateDep(delta string, updateOptions map[string]string) func(client dbclie
 // you create the perfect interface for your purpose, and make your dependencies match that
 // this can be perfectly unit tested, because the logic can be isolated from the side effects
 // the specific details of the library api are abstracted from the logic as well.
+
+// to make sure the query and updates use the same connection, the client isn't abstracted
+
 // I think this function is far more readable now.
 func functionDependenciesVersion(
 	dbclient func() (dbclient, error),
