@@ -182,8 +182,6 @@ func updateDep(delta string, updateOptions map[string]string) func(client dbclie
 // this can be perfectly unit tested, because the logic can be isolated from the side effects
 // the specific details of the library api are abstracted from the logic as well.
 
-// to make sure the query and updates use the same connection, the client isn't abstracted
-
 // I think this function is far more readable now.
 func functionDependenciesVersion(
 	dbclient func() (dbclient, error),
@@ -200,6 +198,71 @@ func functionDependenciesVersion(
 	}
 	for _, field := range results {
 		err = update(client, field)
+		if err != nil {
+			return lastUpdated, err
+		}
+		lastUpdated = field
+	}
+	return lastUpdated, nil
+}
+
+// to make sure the query and updates use the same connection, the client isn't abstracted in the previous version
+
+// when memoization is used for the client function, it is pulled out into the composition
+func MemoizedVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
+	clientFunc := memoize(clientDep(dbhost))
+	return memoizedVersion(
+		queryDepWithClient(clientFunc, entityID),
+		updateDepWithClient(clientFunc, delta, updateOptions),
+	)
+}
+
+func memoize(makeClient func() (dbclient, error)) func() (dbclient, error) {
+	var client dbclient
+	var err error
+	exists := false
+	return func() (dbclient, error) {
+		if exists {
+			return client, err
+		}
+		client, err = makeClient()
+		return client, err
+	}
+}
+
+// This can be tested using mocks and pure functions to confirm it behaves correctly
+func queryDepWithClient(makeClient func() (dbclient, error), entityID string) func() ([]string, error) {
+	return func() ([]string, error) {
+		client, err := makeClient()
+		if err != nil {
+			return nil, err
+		}
+		return client.DbQuery(makeQuery(entityID))
+	}
+}
+
+func updateDepWithClient(makeClient func() (dbclient, error), delta string, updateOptions map[string]string) func(result string) error {
+	return func(field string) error {
+		client, err := makeClient()
+		if err != nil {
+			return err
+		}
+		return client.DbUpdate(updateOptions, field, delta)
+	}
+}
+
+// the client is now pulled out of this function
+// the only issue with this is if makeClient returns an error, it will now be handled by the query error handling
+func memoizedVersion(
+	query func() ([]string, error),
+	update func(string) error,
+) (lastUpdated string, err error) {
+	results, err := query()
+	if err != nil {
+		return "", err
+	}
+	for _, field := range results {
+		err = update(field)
 		if err != nil {
 			return lastUpdated, err
 		}

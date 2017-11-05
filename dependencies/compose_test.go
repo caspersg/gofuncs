@@ -83,3 +83,28 @@ func TestFunctionDependencyVersion(t *testing.T) {
 	}
 	// TODO verify mock was called correctly
 }
+
+func TestMemoizedVersion(t *testing.T) {
+	// the test is a bit simpler as nothing about the client is required in the test
+	expectedUpdates := []string{"a", "b"}
+	query := func() ([]string, error) { return expectedUpdates, nil }
+	updateCount := 0
+	update := func(value string) error {
+		if value != expectedUpdates[updateCount] {
+			t.Errorf("result == %v expected %v", value, expectedUpdates[updateCount])
+		}
+		updateCount++
+		return nil
+	}
+	result, err := memoizedVersion(query, update)
+	if err != nil {
+		t.Errorf("result == %v expected %v", err, nil)
+	}
+	if updateCount != 2 {
+		t.Errorf("result == %v expected %v", updateCount, 2)
+	}
+	if result != expectedUpdates[1] {
+		t.Errorf("result == %v expected %v", result, expectedUpdates[1])
+	}
+	// TODO verify mock was called correctly
+}
