@@ -183,6 +183,10 @@ func updateDep(delta string, updateOptions map[string]string) func(client dbclie
 // the specific details of the library api are abstracted from the logic as well.
 
 // I think this function is far more readable now.
+
+// Level 1 of this would be to pass in the function directly. To refactor existing code, this is probably the first step.
+// Level 2 is to adapt the dependency function to our specific use case. By creating adapter functions, the resulting code only includes the required details, without irrelevant details.
+
 func functionDependenciesVersion(
 	dbclient func() (dbclient, error),
 	query func(dbclient) ([]string, error),
