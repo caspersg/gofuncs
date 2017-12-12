@@ -1,6 +1,6 @@
 package dependencies
 
-// Testing, Dependencies and Composition
+// Composition, Testing and Dependencies
 // With a lot of dynamic languages, it is easy to replace a given function or method call with a mocked version
 // By changing the behaviour, you make testing existing code much easier.
 // Another way to make testing easier, especially with static languages is with dependency injection.
@@ -10,6 +10,10 @@ package dependencies
 // The assumption I'm making is that there's no active record style library available
 // The way to implement and write tests for the following functionality would be completely
 // different based on the use of that library.
+
+// Part of the goal is to maintain the public method's signature
+// I don't want the caller to need to know about the function's dependencies
+// or be affected by any refactoring.
 
 //
 // provided library api
@@ -40,7 +44,10 @@ func NewDbClient(config string) (dbclient, error) {
 // we basically need a test instance of the DB in order to test this
 // As a result tests are slower and more prone to fragility,
 // so they'll often end up only testing the happy path.
-func BasicVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
+func BasicVersion(
+	dbhost, entityID, delta string,
+	updateOptions map[string]string,
+) (lastUpdated string, err error) {
 	connectionString := "url:" + dbhost
 	client, err := NewDbClient(connectionString)
 	if err != nil {
@@ -67,7 +74,10 @@ func BasicVersion(dbhost, entityID, delta string, updateOptions map[string]strin
 // it may be a bit easier to read,
 // but this has not improved our ease of testing at all
 // If the error handling was more extensive, then that could also be partially abstracted in the sub functions
-func ExtractedFunctionVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
+func ExtractedFunctionVersion(
+	dbhost, entityID, delta string,
+	updateOptions map[string]string,
+) (lastUpdated string, err error) {
 	client, err := makeClient(dbhost)
 	if err != nil {
 		return "", err
@@ -117,7 +127,10 @@ type iClient interface {
 	DbQuery(query string) (result []string, err error)
 }
 
-func InterfaceClientVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
+func InterfaceClientVersion(
+	dbhost, entityID, delta string,
+	updateOptions map[string]string,
+) (lastUpdated string, err error) {
 	client, err := NewDbClient(dbconnectionstring(dbhost))
 	if err != nil {
 		return "", err
@@ -148,26 +161,30 @@ func interfaceClientVersion(client iClient, entityID, delta string, updateOption
 
 // If Go had generics, then this composition could be written more generically.
 // but it would still need integration testing, so not a lot is lost
-func FunctionDependenciesVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
+
+func FunctionDependenciesVersion(
+	dbhost, entityID, delta string,
+	updateOptions map[string]string,
+) (lastUpdated string, err error) {
 	return functionDependenciesVersion(
-		clientDep(dbhost),
-		queryDep(entityID),
+		clientDep(NewDbClient, dbhost),
+		queryDep,
 		updateDep(delta, updateOptions),
-	)
+	)(entityID)
 }
 
+// adapters, change the interface from the existing library to a more useful interface for our specific use case
 // extracting the dependencies to functions allows them to be tested separately
-func clientDep(dbhost string) func() (dbclient, error) {
+// This can be tested using mocks and pure functions to confirm it behaves correctly
+
+func clientDep(newClient func(config string) (dbclient, error), dbhost string) func() (dbclient, error) {
 	return func() (dbclient, error) {
-		return NewDbClient(dbconnectionstring(dbhost))
+		return newClient(dbconnectionstring(dbhost))
 	}
 }
 
-// This can be tested using mocks and pure functions to confirm it behaves correctly
-func queryDep(entityID string) func(client dbclient) ([]string, error) {
-	return func(client dbclient) ([]string, error) {
-		return client.DbQuery(makeQuery(entityID))
-	}
+func queryDep(client dbclient, entityID string) ([]string, error) {
+	return client.DbQuery(makeQuery(entityID))
 }
 
 func updateDep(delta string, updateOptions map[string]string) func(client dbclient, result string) error {
@@ -189,32 +206,37 @@ func updateDep(delta string, updateOptions map[string]string) func(client dbclie
 
 func functionDependenciesVersion(
 	dbclient func() (dbclient, error),
-	query func(dbclient) ([]string, error),
+	query func(dbclient, string) ([]string, error),
 	update func(dbclient, string) error,
-) (lastUpdated string, err error) {
-	client, err := dbclient()
-	if err != nil {
-		return "", err
-	}
-	results, err := query(client)
-	if err != nil {
-		return "", err
-	}
-	for _, field := range results {
-		err = update(client, field)
+) func(entityId string) (lastUpdated string, err error) {
+	return func(entityId string) (lastUpdated string, err error) {
+		client, err := dbclient()
 		if err != nil {
-			return lastUpdated, err
+			return "", err
 		}
-		lastUpdated = field
+		results, err := query(client, entityId)
+		if err != nil {
+			return "", err
+		}
+		for _, field := range results {
+			err = update(client, field)
+			if err != nil {
+				return lastUpdated, err
+			}
+			lastUpdated = field
+		}
+		return lastUpdated, nil
 	}
-	return lastUpdated, nil
 }
 
 // to make sure the query and updates use the same connection, the client isn't abstracted in the previous version
 
 // when memoization is used for the client function, it is pulled out into the composition
-func MemoizedVersion(dbhost, entityID, delta string, updateOptions map[string]string) (lastUpdated string, err error) {
-	clientFunc := memoize(clientDep(dbhost))
+func MemoizedVersion(
+	dbhost, entityID, delta string,
+	updateOptions map[string]string,
+) (lastUpdated string, err error) {
+	clientFunc := memoize(clientDep(NewDbClient, dbhost))
 	return memoizedVersion(
 		queryDepWithClient(clientFunc, entityID),
 		updateDepWithClient(clientFunc, delta, updateOptions),

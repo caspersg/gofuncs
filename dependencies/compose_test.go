@@ -1,6 +1,7 @@
 package dependencies
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -62,8 +63,9 @@ func TestFunctionDependencyVersion(t *testing.T) {
 	expectedClient := dbclient{}
 	expectedUpdates := []string{"a", "b"}
 	client := func() (dbclient, error) { return expectedClient, nil }
-	query := func(client dbclient) ([]string, error) { return expectedUpdates, nil }
+	query := func(client dbclient, id string) ([]string, error) { return expectedUpdates, nil }
 	updateCount := 0
+	entityID := "123"
 	update := func(client dbclient, value string) error {
 		if value != expectedUpdates[updateCount] {
 			t.Errorf("result == %v expected %v", value, expectedUpdates[updateCount])
@@ -71,7 +73,7 @@ func TestFunctionDependencyVersion(t *testing.T) {
 		updateCount++
 		return nil
 	}
-	result, err := functionDependenciesVersion(client, query, update)
+	result, err := functionDependenciesVersion(client, query, update)(entityID)
 	if err != nil {
 		t.Errorf("result == %v expected %v", err, nil)
 	}
@@ -82,6 +84,26 @@ func TestFunctionDependencyVersion(t *testing.T) {
 		t.Errorf("result == %v expected %v", result, expectedUpdates[1])
 	}
 	// TODO verify mock was called correctly
+}
+
+func TestClientDep(t *testing.T) {
+	expectedClient := dbclient{}
+	expectedConfig := "url:host"
+	expectedErr := errors.New("some error")
+	dbhost := "host"
+	newClient := func(config string) (dbclient, error) {
+		if config != expectedConfig {
+			t.Errorf("result == %v expected %v", config, expectedConfig)
+		}
+		return expectedClient, expectedErr
+	}
+	client, err := clientDep(newClient, dbhost)()
+	if client != expectedClient {
+		t.Errorf("result == %v expected %v", client, expectedClient)
+	}
+	if err != expectedErr {
+		t.Errorf("result == %v expected %v", err, expectedErr)
+	}
 }
 
 func TestMemoizedVersion(t *testing.T) {
