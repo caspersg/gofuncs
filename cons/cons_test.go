@@ -56,15 +56,15 @@ func TestFilter(t *testing.T) {
 		return x.(int)%2 == 0
 	}
 	got := filter(even, l)
-	if !reflect.DeepEqual(toString(got), "cons(2, nil)") {
-		t.Errorf("result == %v", toString(got))
+	if !reflect.DeepEqual(prettyPrint(got), "cons(2, nil)") {
+		t.Errorf("result == %v", prettyPrint(got))
 	}
 	isThree := func(x Any) bool {
 		return x.(int) == 3
 	}
 	got = filter(isThree, l)
-	if !reflect.DeepEqual(toString(got), "cons(3, nil)") {
-		t.Errorf("result == %v", toString(got))
+	if !reflect.DeepEqual(prettyPrint(got), "cons(3, nil)") {
+		t.Errorf("result == %v", prettyPrint(got))
 	}
 
 	s := cons("afds", cons("dfs", cons("ab", nil)))
@@ -72,7 +72,7 @@ func TestFilter(t *testing.T) {
 		return strings.HasPrefix(x.(string), "a")
 	}
 	got = filter(startsWithA, s)
-	if !reflect.DeepEqual(toString(got), "cons(ab, cons(afds, nil))") {
-		t.Errorf("result == %v", toString(got))
+	if !reflect.DeepEqual(prettyPrint(got), "cons(afds, cons(ab, nil))") {
+		t.Errorf("result == %v", prettyPrint(got))
 	}
 }
